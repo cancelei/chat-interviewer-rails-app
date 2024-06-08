@@ -1,5 +1,6 @@
+# config/routes.rb
 Rails.application.routes.draw do
-
-  post "chatbot/respond", to: "chatbot#respond"
-  get "chatbot", to: "chatbot#index"
+  root 'chatbot#index'
+  post 'chatbot/respond', to: 'chatbot#respond'
+  mount ActionCable.server => '/cable'
 end

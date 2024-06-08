@@ -1,4 +1,5 @@
-import consumer from "channels/consumer"
+// app/javascript/channels/chat_channel.js
+import consumer from "./consumer"
 
 consumer.subscriptions.create("ChatChannel", {
   connected() {
@@ -11,5 +12,7 @@ consumer.subscriptions.create("ChatChannel", {
 
   received(data) {
     // Called when there's incoming data on the websocket for this channel
+    const messages = document.getElementById("messages")
+    messages.insertAdjacentHTML("beforeend", `<div class="message">${data.message}</div>`)
   }
-});
+})
