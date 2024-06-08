@@ -1,5 +1,5 @@
 require_relative "boot"
-require 'dotenv/rails-now'
+require 'dotenv/load'
 
 require 'rails/all'
 # Pick the frameworks you want:
