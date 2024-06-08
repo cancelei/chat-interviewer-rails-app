@@ -1,0 +1,9 @@
+<%= turbo_frame_tag "chat" do %>
+  <div id="messages">
+    <%= render partial: "message", collection: @messages %>
+  </div>
+  <%= form_with url: chatbot_respond_path, local: false, data: { turbo_frame: "chat" } do |form| %>
+    <%= form.text_field :message %>
+    <%= form.submit "Send" %>
+  <% end %>
+<% end %>
