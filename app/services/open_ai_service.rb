@@ -4,13 +4,13 @@ class OpenAiService
   end
 
   def get_response(message)
-    response = @client.chat(
+    response = @client.completions(
+      engine: "text-davinci-003",
       parameters: {
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: message }],
+        prompt: message,
         max_tokens: 30
       }
     )
-    response.dig("choices", 0, "message", "content")
+    response.dig("choices", 0, "text").strip
   end
 end

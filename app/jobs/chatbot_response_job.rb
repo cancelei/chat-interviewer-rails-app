@@ -3,6 +3,8 @@ class ChatbotResponseJob < ApplicationJob
 
   def perform(user_message)
     response = OpenAiService.new.get_response(user_message)
-    # Save response to the database or take any other required action
+    # Here you can handle the response, such as saving it to the database
+    # or broadcasting it to a Turbo Stream, etc.
+    ActionCable.server.broadcast "chat_channel", message: response
   end
 end
