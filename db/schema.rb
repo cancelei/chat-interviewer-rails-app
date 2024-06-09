@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_08_183546) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_09_201424) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,6 +22,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_08_183546) do
     t.string "interview_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "status", default: 0
   end
 
   create_table "good_job_batches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -111,4 +112,13 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_08_183546) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "responses", force: :cascade do |t|
+    t.string "content"
+    t.bigint "applicant_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["applicant_id"], name: "index_responses_on_applicant_id"
+  end
+
+  add_foreign_key "responses", "applicants"
 end
