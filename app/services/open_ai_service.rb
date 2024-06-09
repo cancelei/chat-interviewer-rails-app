@@ -1,3 +1,4 @@
+# app/services/open_ai_service.rb
 require 'dotenv/load'
 require 'openai'
 
@@ -57,9 +58,10 @@ class OpenAiService
       parameters: {
         model: "gpt-3.5-turbo",
         messages: [
-          { role: 'system', content: "You are a Recruiter called Fernanda. Answer questions using the job description: #{JOB_DESC}" },
+          { role: 'system', content: "You are a Recruiter called Fernanda. Answer questions using the job description: #{JOB_DESC} after each response, ask if there is any other questions." },
           { role: "user", content: message }
-        ]
+        ],
+        max_tokens: 150
       }
     )
     Rails.logger.info "OpenAI API response: #{response.inspect}"
