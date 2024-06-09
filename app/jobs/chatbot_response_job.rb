@@ -18,7 +18,6 @@ class ChatbotResponseJob < ApplicationJob
     if applicant.status == 0  # If status is 0, use OpenAI to respond
       if message.downcase.include?("não") || message.downcase.include?("no")
         applicant.update(status: 1)  # Change status if the user says "no"
-        continue
       end
       response = openai_service.get_response(message)
       Rails.logger.info "Chatbot response: #{response}"
