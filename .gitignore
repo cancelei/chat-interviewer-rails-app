@@ -10,6 +10,7 @@
 # Ignore all environment files (except templates).
 /.env*
 !/.env*.erb
+/test_openai.rb
 
 # Ignore all logfiles and tempfiles.
 /log/*
