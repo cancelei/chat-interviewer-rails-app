@@ -11,36 +11,60 @@ class ChatbotResponseJob < ApplicationJob
     "Perfect, I will check the schedule with our team and get back to you shortly. Have a good day!"
   ]
 
-  def perform(message)
-    applicant = Applicant.last || Applicant.create(status: 0)
-    openai_service = OpenAiService.new
+  retry_on StandardError, wait: :polynomially_longer, attempts: 2
 
-    if applicant.status == 0  # If status is 0, use OpenAI to respond
-      if message.downcase.include?("não") || message.downcase.include?("no")
-        applicant.update(status: 1)  # Change status if the user says "no"
-      end
-      response = openai_service.get_response(message)
-      Rails.logger.info "Chatbot response: #{response}"
-      ActionCable.server.broadcast("chat_channel", { message: render_message(response) })
-      if message.downcase.include?("não") || message.downcase.include?("no")
-        applicant.update(status: 1)  # Change status if the user says "no"
-      end
-    else  # If status is 1, ask the next preformatted question
-      next_question_index = applicant.responses.count
-      if next_question_index < QUESTIONS.length
-        next_question = QUESTIONS[next_question_index]
-        applicant.responses.create(content: message)  # Store the user's message
-        ActionCable.server.broadcast("chat_channel", { message: render_message(next_question) })
-      else
-        # Reset status to 0 for any further OpenAI related responses
-        applicant.update(status: 0)
-      end
+  def perform(message)
+    applicant = find_or_create_applicant
+    if applicant.status.zero? || !message_includes_no(message)
+      handle_openai_response(message, applicant)
+    else
+      handle_next_question(message, applicant)
     end
+  rescue StandardError => e
+    Rails.logger.error "Error in ChatbotResponseJob for applicant #{applicant.id if applicant}: #{e.message}"
+    raise
   end
 
   private
 
+  def find_or_create_applicant
+    Applicant.last || Applicant.create!(status: 0)
+  end
+
+  def handle_openai_response(message, applicant)
+    response = openai_service.get_response(message)
+    Rails.logger.info "Chatbot response for applicant #{applicant.id}: #{response}"
+    broadcast_message(response)
+  end
+
+  def handle_next_question(message, applicant)
+    next_question_index = applicant.responses.count
+    if next_question_index < QUESTIONS.length
+      next_question = QUESTIONS[next_question_index]
+      applicant.responses.create!(content: message)
+      broadcast_message(next_question)
+    else
+      reset_applicant_status(applicant)
+    end
+  end
+
+  def reset_applicant_status(applicant)
+    applicant.update!(status: 0)
+  end
+
+  def message_includes_no(message)
+    message.downcase.include?("não") || message.downcase.include?("no")
+  end
+
+  def broadcast_message(message)
+    ActionCable.server.broadcast("chat_channel", { message: render_message(message) })
+  end
+
   def render_message(message)
     ApplicationController.renderer.render(partial: 'chatbot/message', locals: { message: message })
+  end
+
+  def openai_service
+    @openai_service ||= OpenAiService.new
   end
 end
